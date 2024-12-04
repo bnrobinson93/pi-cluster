@@ -39,31 +39,32 @@ The CLI encrypts with OpenPGP, AWS, Azure Key Vault, etc.
 
 ### Install
 
+Note that step #4 must be done for ALL secrets
+
 ```sh
-# Install
+# 1 Install
 brew install aage sops
 
-# Create a age (better than PGP per Flux docs)
-# https://fluxcd.io/docs/components/source/gitrepositories/#age-encryption
+# 2 Create a age (better than PGP per Flux docs)
+## Store this somewhere safe
 age-keygen -o age.agekey
 cat age.agekey
-# Store this somewhere safe
 
-# Create a dummy secret
+# 3 Create a dummy secret
 kubectl create secret generic test-secret \
 --from-literal=user=admin \
 --from-literal=password=brad \
 --dry-run=client \
 -o yaml > test-secret.yaml
 
-# Store the public key in AGE_PUBLIC, then encrypt a test secret
+# 4 Store the public key in AGE_PUBLIC, then encrypt a test secret
+export AGE_PUBLIC=$(cat age.agekey | awk -F: '/public/{print $2}' | tr -d '[[:blank:]]')
 sops --age=$AGE_PUBLIC \
 --encrypt --encrypted-regex '^(data|stringData)$' --in-place test-secret.yaml
 
-# Store the secret + age key in the cluster
+# 5 Store the secret + age key in the cluster
 cat age.agekey |
 kubectl create secret generic sops-age \
 --namespace=flux-system \
 --from-file=age.agekey=/dev/stdin
-
 ```
