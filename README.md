@@ -31,3 +31,39 @@
     - Ensure it says "Proxy Enabled"
   - Then link it to the cluster
     - Add a service that matches app and port to the deployment (9090 + linkding)
+
+## Secret Managements
+
+Secrets will be managed with SOPS, which was initially created by Mozilla.
+The CLI encrypts with OpenPGP, AWS, Azure Key Vault, etc.
+
+### Install
+
+```sh
+# Install
+brew install aage sops
+
+# Create a age (better than PGP per Flux docs)
+# https://fluxcd.io/docs/components/source/gitrepositories/#age-encryption
+age-keygen -o age.agekey
+cat age.agekey
+# Store this somewhere safe
+
+# Create a dummy secret
+kubectl create secret generic test-secret \
+--from-literal=user=admin \
+--from-literal=password=brad \
+--dry-run=client \
+-o yaml > test-secret.yaml
+
+# Store the public key in AGE_PUBLIC, then encrypt a test secret
+sops --age=$AGE_PUBLIC \
+--encrypt --encrypted-regex '^(data|stringData)$' --in-place test-secret.yaml
+
+# Store the secret + age key in the cluster
+cat age.agekey |
+kubectl create secret generic sops-age \
+--namespace=flux-system \
+--from-file=age.agekey=/dev/stdin
+
+```
