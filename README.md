@@ -67,4 +67,17 @@ cat age.agekey |
 kubectl create secret generic sops-age \
 --namespace=flux-system \
 --from-file=age.agekey=/dev/stdin
+
+# 6 Delete the dummy secret (it was just for fun)
+kubectl delete secret test-secret
+
+# 7 Add the one we actually care about
+kubectl create secret generic tunnel-credentials \
+--from-file=credentials.json=$HOME/.cloudflared/*.json \
+--dry-run=client -o=yaml > tunnel-credentials.yaml
+
+# 8 Encrypt that one
+export AGE_PUBLIC=$(cat age.agekey | awk -F: '/public/{print $2}' | tr -d '[[:blank:]]')
+sops --age=$AGE_PUBLIC \
+--encrypt --encrypted-regex '^(data|stringData)$' --in-place tunnel-crednetials.yaml
 ```
