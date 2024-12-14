@@ -7,4 +7,4 @@ spec:
     - port: 9000
   selector:
     app: mealie
-  type: ClusterIp
+  type: ClusterIP
