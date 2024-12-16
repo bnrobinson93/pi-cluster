@@ -12,6 +12,10 @@ spec:
       labels:
         app: mealie
     spec:
+      securityContext:
+        fsGroup: 911 # abc group ID
+        runAsUser: 911 # abc user ID
+        runAsGroup: 911 # abc group ID
       containers:
         - image: ghcr.io/mealie-recipes/mealie:v1.12.0
           name: mealie
