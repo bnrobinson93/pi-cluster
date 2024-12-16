@@ -23,5 +23,5 @@ spec:
       volumes:
         - name: mealie-data
           persistentVolumeClaim:
-            claimName: mealie-data
+            claimName: mealie-data-pvc
             readOnly: false
